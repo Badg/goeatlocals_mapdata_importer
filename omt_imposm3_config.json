@@ -1,0 +1,10 @@
+{
+    "mapping": "/project_src/omt_imposm3.yaml",
+    "connection": "postgres://postgres:postgres@goeatlocals_client_web-postgis/gis",
+    "cachedir": "/project_data/importer/imposm_cache",
+    "schemas": {
+        "import": "mapdata_staging",
+        "production": "mapdata_prod",
+        "backup": "mapdata_backup"
+    }
+}
