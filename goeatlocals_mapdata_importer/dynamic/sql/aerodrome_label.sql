@@ -1,11 +1,11 @@
 DO $$ BEGIN RAISE NOTICE 'Processing layer aerodrome_label'; END$$;
 
 -- Layer aerodrome_label - ./update_aerodrome_label_point.sql
-BEGIN
-    UPDATE :use_schema.osm_aerodrome_label_point
+BEGIN;
+    UPDATE __use_schema__.osm_aerodrome_label_point
     SET geometry = normalize_aerodrome_label_point(geometry);
 
-    UPDATE :use_schema.osm_aerodrome_label_point
+    UPDATE __use_schema__.osm_aerodrome_label_point
     SET tags = update_tags(tags, geometry)
     WHERE COALESCE(tags->'name:latin', tags->'name:nonlatin', tags->'name_int') IS NULL;
 END;

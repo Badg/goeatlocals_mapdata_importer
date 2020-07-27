@@ -13,7 +13,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
     tags,
     'lake'::text AS class,
     is_intermittent::int AS intermittent
-    FROM :use_schema.osm_water_lakeline
+    FROM __use_schema__.osm_water_lakeline
     WHERE geometry && bbox
       AND ((zoom_level BETWEEN 9 AND 13 AND LineLabel(zoom_level, NULLIF(name, ''), geometry))
         OR (zoom_level >= 14))
@@ -30,7 +30,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
     tags,
     'lake'::text AS class,
     is_intermittent::int AS intermittent
-    FROM :use_schema.osm_water_point
+    FROM __use_schema__.osm_water_point
     WHERE geometry && bbox AND (
         (zoom_level BETWEEN 9 AND 13 AND area > 70000*2^(20-zoom_level))
         OR (zoom_level >= 14)
@@ -45,7 +45,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
     tags,
     place::text AS class,
     is_intermittent::int AS intermittent
-    FROM :use_schema.osm_marine_point
+    FROM __use_schema__.osm_marine_point
     WHERE geometry && bbox AND (
         place = 'ocean'
         OR (zoom_level >= "rank" AND "rank" IS NOT NULL)

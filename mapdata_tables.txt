@@ -87,8 +87,8 @@ osm_state_point
 osm_water_polygon
 osm_waterway_linestring
 osm_border_linestring
-lake_centerline
 osm_water_lakeline
+osm_water_point
 osm_important_waterway_linestring
 osm_important_waterway_linestring_gen1
 osm_important_waterway_linestring_gen2

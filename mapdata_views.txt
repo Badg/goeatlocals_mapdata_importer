@@ -22,8 +22,6 @@ boundary_z10
 boundary_z11
 boundary_z12
 boundary_z13
-osm_poi_stop_centroid
-osm_poi_stop_rank
 landcover_z0
 landcover_z2
 landcover_z5

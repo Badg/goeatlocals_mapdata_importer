@@ -45,7 +45,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_transportation_merge_linestring_gen7
+        FROM __use_schema__.osm_transportation_merge_linestring_gen7
         WHERE zoom_level = 4
         UNION ALL
 
@@ -60,7 +60,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_transportation_merge_linestring_gen6
+        FROM __use_schema__.osm_transportation_merge_linestring_gen6
         WHERE zoom_level = 5
         UNION ALL
 
@@ -75,7 +75,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_transportation_merge_linestring_gen5
+        FROM __use_schema__.osm_transportation_merge_linestring_gen5
         WHERE zoom_level = 6
         UNION ALL
 
@@ -90,7 +90,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_transportation_merge_linestring_gen4
+        FROM __use_schema__.osm_transportation_merge_linestring_gen4
         WHERE zoom_level = 7
         UNION ALL
 
@@ -105,7 +105,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_transportation_merge_linestring_gen3
+        FROM __use_schema__.osm_transportation_merge_linestring_gen3
         WHERE zoom_level = 8
         UNION ALL
 
@@ -121,7 +121,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             bicycle, foot, horse, mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_highway_linestring_gen2
+        FROM __use_schema__.osm_highway_linestring_gen2
         WHERE zoom_level BETWEEN 9 AND 10
           AND st_length(geometry)>zres(11)
         UNION ALL
@@ -137,7 +137,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             bicycle, foot, horse, mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_highway_linestring_gen1
+        FROM __use_schema__.osm_highway_linestring_gen1
         WHERE zoom_level = 11
           AND st_length(geometry)>zres(12)
         UNION ALL
@@ -156,7 +156,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             bicycle, foot, horse, mtb_scale,
             surface_value(surface) AS "surface",
             z_order
-        FROM :use_schema.osm_highway_linestring
+        FROM __use_schema__.osm_highway_linestring
         WHERE NOT is_area AND (
             zoom_level = 12 AND (
                 highway_class(highway, public_transport, construction) NOT IN ('track', 'path', 'minor')
@@ -188,7 +188,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL as surface, z_order
-        FROM :use_schema.osm_railway_linestring_gen5
+        FROM __use_schema__.osm_railway_linestring_gen5
         WHERE zoom_level = 8
             AND railway='rail' AND service = '' and usage='main'
         UNION ALL
@@ -204,7 +204,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_railway_linestring_gen4
+        FROM __use_schema__.osm_railway_linestring_gen4
         WHERE zoom_level = 9
             AND railway='rail' AND service = '' and usage='main'
         UNION ALL
@@ -218,7 +218,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_railway_linestring_gen3
+        FROM __use_schema__.osm_railway_linestring_gen3
         WHERE zoom_level = 10
             AND railway IN ('rail', 'narrow_gauge') AND service = ''
         UNION ALL
@@ -232,7 +232,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL as surface, z_order
-        FROM :use_schema.osm_railway_linestring_gen2
+        FROM __use_schema__.osm_railway_linestring_gen2
         WHERE zoom_level = 11
             AND railway IN ('rail', 'narrow_gauge', 'light_rail') AND service = ''
         UNION ALL
@@ -246,7 +246,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL as surface, z_order
-        FROM :use_schema.osm_railway_linestring_gen1
+        FROM __use_schema__.osm_railway_linestring_gen1
         WHERE zoom_level = 12
             AND railway IN ('rail', 'narrow_gauge', 'light_rail') AND service = ''
         UNION ALL
@@ -261,7 +261,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL as surface, z_order
-        FROM :use_schema.osm_railway_linestring
+        FROM __use_schema__.osm_railway_linestring
         WHERE zoom_level = 13
                 AND railway IN ('rail', 'narrow_gauge', 'light_rail') AND service = ''
             OR zoom_Level >= 14
@@ -276,7 +276,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_aerialway_linestring_gen1
+        FROM __use_schema__.osm_aerialway_linestring_gen1
         WHERE zoom_level = 12
         UNION ALL
 
@@ -290,7 +290,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_aerialway_linestring
+        FROM __use_schema__.osm_aerialway_linestring
         WHERE zoom_level >= 13
         UNION ALL
 
@@ -303,7 +303,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_shipway_linestring_gen2
+        FROM __use_schema__.osm_shipway_linestring_gen2
         WHERE zoom_level = 11
         UNION ALL
 
@@ -316,7 +316,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_shipway_linestring_gen1
+        FROM __use_schema__.osm_shipway_linestring_gen1
         WHERE zoom_level = 12
         UNION ALL
 
@@ -330,7 +330,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_shipway_linestring
+        FROM __use_schema__.osm_shipway_linestring
         WHERE zoom_level >= 13
         UNION ALL
 
@@ -351,7 +351,7 @@ indoor INT, bicycle TEXT, foot TEXT, horse TEXT, mtb_scale TEXT, surface TEXT) A
             layer, NULL::int AS level, NULL::boolean AS indoor,
             NULL as bicycle, NULL as foot, NULL as horse, NULL as mtb_scale,
             NULL AS surface, z_order
-        FROM :use_schema.osm_highway_polygon
+        FROM __use_schema__.osm_highway_polygon
         -- We do not want underground pedestrian areas for now
         WHERE zoom_level >= 13
             AND (
@@ -396,21 +396,21 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         -- etldoc: osm_transportation_name_linestring_gen4 ->  layer_transportation_name:z6
         SELECT *,
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor
-        FROM :use_schema.osm_transportation_name_linestring_gen4
+        FROM __use_schema__.osm_transportation_name_linestring_gen4
         WHERE zoom_level = 6
         UNION ALL
 
         -- etldoc: osm_transportation_name_linestring_gen3 ->  layer_transportation_name:z7
         SELECT *,
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor
-        FROM :use_schema.osm_transportation_name_linestring_gen3
+        FROM __use_schema__.osm_transportation_name_linestring_gen3
         WHERE zoom_level = 7
         UNION ALL
 
         -- etldoc: osm_transportation_name_linestring_gen2 ->  layer_transportation_name:z8
         SELECT *,
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor
-        FROM :use_schema.osm_transportation_name_linestring_gen2
+        FROM __use_schema__.osm_transportation_name_linestring_gen2
         WHERE zoom_level = 8
         UNION ALL
 
@@ -419,7 +419,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         -- etldoc: osm_transportation_name_linestring_gen1 ->  layer_transportation_name:z11
         SELECT *,
             NULL::int AS layer, NULL::int AS level, NULL::boolean AS indoor
-        FROM :use_schema.osm_transportation_name_linestring_gen1
+        FROM __use_schema__.osm_transportation_name_linestring_gen1
         WHERE zoom_level BETWEEN 9 AND 11
         UNION ALL
 
@@ -439,7 +439,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
           layer,
           "level",
           indoor
-        FROM :use_schema.osm_transportation_name_linestring
+        FROM __use_schema__.osm_transportation_name_linestring
         WHERE zoom_level = 12
             AND LineLabel(zoom_level, COALESCE(NULLIF(name, ''), ref), geometry)
             AND highway_class(highway, '', construction) NOT IN ('minor', 'track', 'path')
@@ -462,7 +462,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
           layer,
           "level",
           indoor
-        FROM :use_schema.osm_transportation_name_linestring
+        FROM __use_schema__.osm_transportation_name_linestring
         WHERE zoom_level = 13
             AND LineLabel(zoom_level, COALESCE(NULLIF(name, ''), ref), geometry)
             AND highway_class(highway, '', construction) NOT IN ('track', 'path')
@@ -484,7 +484,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
           layer,
           "level",
           indoor
-        FROM :use_schema.osm_transportation_name_linestring
+        FROM __use_schema__.osm_transportation_name_linestring
         WHERE zoom_level >= 14
 
     ) AS zoom_levels
@@ -603,17 +603,3 @@ CREATE OR REPLACE FUNCTION mapdata_utils.highway_is_link(highway TEXT) RETURNS B
 $$
 LANGUAGE SQL
 IMMUTABLE STRICT PARALLEL SAFE;
-
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'route_network_type') THEN
-        CREATE TYPE mapdata_utils.route_network_type AS ENUM (
-          'us-interstate', 'us-highway', 'us-state',
-          'ca-transcanada',
-          'gb-motorway', 'gb-trunk'
-        );
-    END IF;
-END
-$$
-;

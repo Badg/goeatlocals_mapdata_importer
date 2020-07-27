@@ -47,7 +47,7 @@ $$
     NULLIF(icao, '') AS icao,
     substring(ele from E'^(-?\\d+)(\\D|$)')::int AS ele,
     round(substring(ele from E'^(-?\\d+)(\\D|$)')::int*3.2808399)::int AS ele_ft
-  FROM :use_schema.osm_aerodrome_label_point
+  FROM __use_schema__.osm_aerodrome_label_point
   WHERE geometry && bbox AND zoom_level >= 10;
 $$
 LANGUAGE SQL
@@ -56,9 +56,8 @@ IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION mapdata_utils.normalize_aerodrome_label_point(raw_point geometry)
 RETURNS geometry AS $$
-    RETURN
-        CASE
-            WHEN ST_GeometryType(raw_point) = 'ST_Point' THEN raw_point
-            ELSE ST_Centroid(raw_point)
-        END;
-$$ LANGUAGE plpgsql;
+    SELECT CASE
+        WHEN ST_GeometryType(raw_point) = 'ST_Point' THEN raw_point
+        ELSE ST_Centroid(raw_point)
+    END;
+$$ LANGUAGE SQL;

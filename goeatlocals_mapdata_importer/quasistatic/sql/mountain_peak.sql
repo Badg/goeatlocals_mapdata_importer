@@ -43,7 +43,7 @@ $$
             (CASE WHEN NULLIF(name, '') is not null THEN 10000 ELSE 0 END)
           ) DESC
       )::int AS "rank"
-      FROM :use_schema.osm_peak_point
+      FROM __use_schema__.osm_peak_point
       WHERE geometry && bbox
         AND ele is not null
         AND ele ~ E'^-?\\d{1,4}(\\D|$)'

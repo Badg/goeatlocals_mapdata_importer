@@ -1,16 +1,3 @@
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM pg_type
-                   WHERE typname = 'public_transport_stop_type') THEN
-        CREATE TYPE mapdata_utils.public_transport_stop_type AS ENUM (
-          'subway', 'tram_stop', 'bus_station', 'bus_stop'
-        );
-    END IF;
-END
-$$;
-
-
 CREATE OR REPLACE FUNCTION mapdata_layers.layer_poi(bbox geometry, zoom_level integer, pixel_width numeric)
 RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de text, tags hstore, class text, subclass text, agg_stop integer, layer integer, level integer, indoor integer, "rank" int) AS $$
     SELECT osm_id_hash AS osm_id, geometry, NULLIF(name, '') AS name,
@@ -39,7 +26,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
         -- etldoc: osm_poi_point ->  layer_poi:z12
         -- etldoc: osm_poi_point ->  layer_poi:z13
         SELECT *,
-            osm_id*10 AS osm_id_hash FROM :use_schema.osm_poi_point
+            osm_id*10 AS osm_id_hash FROM __use_schema__.osm_poi_point
             WHERE geometry && bbox
                 AND zoom_level BETWEEN 12 AND 13
                 AND ((subclass='station' AND mapping_key = 'railway')
@@ -48,7 +35,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
 
         -- etldoc: osm_poi_point ->  layer_poi:z14_
         SELECT *,
-            osm_id*10 AS osm_id_hash FROM :use_schema.osm_poi_point
+            osm_id*10 AS osm_id_hash FROM __use_schema__.osm_poi_point
             WHERE geometry && bbox
                 AND zoom_level >= 14
 
@@ -60,7 +47,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
             CASE WHEN osm_id<0 THEN -osm_id*10+4
                 ELSE osm_id*10+1
             END AS osm_id_hash
-        FROM :use_schema.osm_poi_polygon
+        FROM __use_schema__.osm_poi_polygon
             WHERE geometry && bbox
                 AND zoom_level BETWEEN 12 AND 13
                 AND ((subclass='station' AND mapping_key = 'railway')
@@ -73,7 +60,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
             CASE WHEN osm_id<0 THEN -osm_id*10+4
                 ELSE osm_id*10+1
             END AS osm_id_hash
-        FROM :use_schema.osm_poi_polygon
+        FROM __use_schema__.osm_poi_polygon
             WHERE geometry && bbox
                 AND zoom_level >= 14
         ) as poi_union
@@ -165,39 +152,36 @@ IMMUTABLE PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION mapdata_utils.normalize_poi_polygon_geo(raw_geo geometry)
 RETURNS geometry AS $$
-    RETURN
-        CASE
-            WHEN ST_GeometryType(raw_geo) = 'ST_Point' THEN raw_geo
-            WHEN ST_NPoints(ST_ConvexHull(geometry))=ST_NPoints(geometry)
-                THEN ST_Centroid(geometry)
-            ELSE ST_PointOnSurface(geometry)
-        END;
-$$ LANGUAGE plpgsql;
+    SELECT CASE
+        WHEN ST_GeometryType(raw_geo) = 'ST_Point' THEN raw_geo
+        WHEN ST_NPoints(ST_ConvexHull(raw_geo))=ST_NPoints(raw_geo)
+            THEN ST_Centroid(raw_geo)
+        ELSE ST_PointOnSurface(raw_geo)
+    END;
+$$ LANGUAGE SQL;
 
 
 CREATE OR REPLACE FUNCTION mapdata_utils.normalize_osm_poi_subclass(station text, subclass text, funicular text)
 RETURNS text AS $$
-    RETURN
-        CASE
-            WHEN station = 'subway' and subclass='station' THEN 'subway',
-            WHEN funicular = 'yes' and subclass='station' THEN 'halt'
-            ELSE subclass
+    SELECT CASE
+        WHEN station = 'subway' and subclass='station' THEN 'subway'
+        WHEN funicular = 'yes' and subclass='station' THEN 'halt'
+        ELSE subclass
     END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE SQL;
 
 
-CREATE OR REPLACE FUNCTION mapdata_utils.normalize_osm_poi_point_agg(subclass text, rank int)
-RETURNS int AS $$
-    RETURN
-        CASE
-            WHEN subclass IN ('bus_stop', 'bus_station', 'tram_stop', 'subway')
-                THEN 1
+CREATE OR REPLACE FUNCTION mapdata_utils.normalize_osm_poi_point_agg(subclass varchar, rank bigint)
+RETURNS bigint AS $$
+    SELECT CASE
+        WHEN subclass IN ('bus_stop', 'bus_station', 'tram_stop', 'subway')
+            THEN 1::bigint
 
-            -- WTF? Very confused. Might be a bug in the OMT original
-            WHEN subclass IN ('bus_stop', 'bus_station', 'tram_stop', 'subway')
-                AND rank IS NULL OR rank = 1
-                THEN 1
+        -- WTF? Very confused. Might be a bug in the OMT original
+        WHEN subclass IN ('bus_stop', 'bus_station', 'tram_stop', 'subway')
+            AND rank IS NULL OR rank = 1
+            THEN 1::bigint
 
-            ELSE rank
-        END;
-$$ LANGUAGE plpgsql;
+        ELSE rank
+    END;
+$$ LANGUAGE SQL;

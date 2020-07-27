@@ -29,7 +29,7 @@ RETURNS TABLE(geometry geometry, osm_id bigint, render_height int, render_min_he
             NULL::int AS render_height, NULL::int AS render_min_height,
             NULL::text AS material, NULL::text AS colour,
             FALSE AS hide_3d
-        FROM :use_schema.osm_building_polygon_gen1
+        FROM __use_schema__.osm_building_polygon_gen1
         WHERE zoom_level = 13 AND geometry && bbox
         UNION ALL
         -- etldoc: osm_building_polygon -> layer_building:z14_
@@ -40,7 +40,7 @@ RETURNS TABLE(geometry geometry, osm_id bigint, render_height int, render_min_he
            material,
            colour,
            hide_3d
-        FROM :use_schema.osm_all_buildings
+        FROM __use_schema__.osm_all_buildings
         WHERE
             (levels IS NULL OR levels < 1000) AND
             (min_level IS NULL OR min_level < 1000) AND

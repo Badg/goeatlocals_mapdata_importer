@@ -7,7 +7,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
     COALESCE(NULLIF(name_de, ''), name, name_en) AS name_de,
     tags,
     place, "rank", normalize_capital_level(capital) AS capital
-    FROM :use_schema.osm_city_point
+    FROM __use_schema__.osm_city_point
     WHERE geometry && bbox
       AND ((zoom_level = 2 AND "rank" = 1)
         OR (zoom_level BETWEEN 3 AND 7 AND "rank" <= zoom_level + 1)
@@ -33,7 +33,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text, name_de
         population DESC NULLS LAST,
         length(name) ASC
       )::int AS gridrank
-        FROM :use_schema.osm_city_point
+        FROM __use_schema__.osm_city_point
         WHERE geometry && bbox
           AND ((zoom_level = 7 AND place <= 'town'::city_place
             OR (zoom_level BETWEEN 8 AND 10 AND place <= 'village'::city_place)
@@ -68,7 +68,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         tags,
         'continent' AS class, 1 AS "rank", NULL::int AS capital,
         NULL::text AS iso_a2
-    FROM :use_schema.osm_continent_point
+    FROM __use_schema__.osm_continent_point
     WHERE geometry && bbox AND zoom_level < 4
     UNION ALL
 
@@ -83,7 +83,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         tags,
         'country' AS class, "rank", NULL::int AS capital,
         iso3166_1_alpha_2 AS iso_a2
-    FROM :use_schema.osm_country_point
+    FROM __use_schema__.osm_country_point
     WHERE geometry && bbox AND "rank" <= zoom_level + 1 AND name <> ''
     UNION ALL
 
@@ -98,7 +98,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         tags,
         'state' AS class, "rank", NULL::int AS capital,
         NULL::text AS iso_a2
-    FROM :use_schema.osm_state_point
+    FROM __use_schema__.osm_state_point
     WHERE geometry && bbox AND
           name <> '' AND
           ("rank" + 2 <= zoom_level) AND (
@@ -115,7 +115,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         tags,
         'island' AS class, 7 AS "rank", NULL::int AS capital,
         NULL::text AS iso_a2
-    FROM :use_schema.osm_island_point
+    FROM __use_schema__.osm_island_point
     WHERE zoom_level >= 12
         AND geometry && bbox
     UNION ALL
@@ -129,7 +129,7 @@ RETURNS TABLE(osm_id bigint, geometry geometry, name text, name_en text,
         tags,
         'island' AS class, island_rank(area) AS "rank", NULL::int AS capital,
         NULL::text AS iso_a2
-    FROM :use_schema.osm_island_polygon
+    FROM __use_schema__.osm_island_polygon
     WHERE geometry && bbox AND
         ((zoom_level = 8 AND island_rank(area) <= 3)
         OR (zoom_level = 9 AND island_rank(area) <= 4)
@@ -153,15 +153,6 @@ LANGUAGE SQL
 IMMUTABLE PARALLEL SAFE;
 
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'city_place') THEN
-        CREATE TYPE mapdata_utils.city_place AS ENUM ('city', 'town', 'village', 'hamlet', 'suburb', 'neighbourhood', 'isolated_dwelling');
-    END IF;
-END
-$$;
-
-
 CREATE OR REPLACE FUNCTION mapdata_utils.normalize_capital_level(capital TEXT)
 RETURNS INT AS $$
     SELECT CASE
@@ -173,7 +164,8 @@ LANGUAGE SQL
 IMMUTABLE STRICT PARALLEL SAFE;
 
 
-CREATE OR REPLACE FUNCTION mapdata_utils.island_rank(area REAL) RETURNS INT AS $$
+CREATE OR REPLACE FUNCTION mapdata_utils.island_rank(area REAL)
+RETURNS INT AS $$
     SELECT CASE
         WHEN area < 10000000 THEN 6
         WHEN area BETWEEN  1000000 AND 15000000 THEN 5

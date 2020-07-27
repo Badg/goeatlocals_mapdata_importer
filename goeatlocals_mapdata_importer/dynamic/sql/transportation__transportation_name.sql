@@ -9,15 +9,15 @@ DO $$ BEGIN RAISE NOTICE 'Processing layer transportation'; END$$;
 
 -- Improve performance of the sql in transportation_name/network_type.sql
 CREATE INDEX IF NOT EXISTS osm_highway_linestring_highway_idx
-  ON :use_schema.osm_highway_linestring(highway);
+  ON __use_schema__.osm_highway_linestring(highway);
 
 -- Improve performance of the sql below
 CREATE INDEX IF NOT EXISTS osm_highway_linestring_highway_partial_idx
-  ON :use_schema.osm_highway_linestring(highway)
+  ON __use_schema__.osm_highway_linestring(highway)
   WHERE highway IN ('motorway','trunk', 'primary', 'construction');
 
   -- etldoc: osm_highway_linestring ->  osm_transportation_merge_linestring
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_merge_linestring AS (
     SELECT
         (ST_Dump(geometry)).geom AS geometry,
         NULL::bigint AS osm_id,
@@ -28,77 +28,77 @@ CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring AS (
           ST_LineMerge(ST_Collect(geometry)) AS geometry,
           highway, construction,
           min(z_order) AS z_order
-      FROM :use_schema.osm_highway_linestring
+      FROM __use_schema__.osm_highway_linestring
       WHERE (highway IN ('motorway','trunk', 'primary') OR highway = 'construction' AND construction IN ('motorway','trunk', 'primary'))
           AND ST_IsValid(geometry)
       group by highway, construction
     ) AS highway_union
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_geometry_idx
-  ON :use_schema.osm_transportation_merge_linestring USING gist(geometry);
+  ON __use_schema__.osm_transportation_merge_linestring USING gist(geometry);
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_highway_partial_idx
-  ON :use_schema.osm_transportation_merge_linestring(highway, construction)
+  ON __use_schema__.osm_transportation_merge_linestring(highway, construction)
   WHERE highway IN ('motorway','trunk', 'primary', 'construction');
 
 -- etldoc: osm_transportation_merge_linestring -> osm_transportation_merge_linestring_gen3
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring_gen3 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_merge_linestring_gen3 AS (
     SELECT ST_Simplify(geometry, 120) AS geometry, osm_id, highway, construction, z_order
-    FROM :use_schema.osm_transportation_merge_linestring
+    FROM __use_schema__.osm_transportation_merge_linestring
     WHERE highway IN ('motorway','trunk', 'primary')
       OR highway = 'construction' AND construction IN ('motorway','trunk', 'primary')
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen3_geometry_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen3 USING gist(geometry);
+  ON __use_schema__.osm_transportation_merge_linestring_gen3 USING gist(geometry);
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen3_highway_partial_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen3(highway, construction)
+  ON __use_schema__.osm_transportation_merge_linestring_gen3(highway, construction)
   WHERE highway IN ('motorway','trunk', 'primary', 'construction');
 
 -- etldoc: osm_transportation_merge_linestring_gen3 -> osm_transportation_merge_linestring_gen4
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring_gen4 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_merge_linestring_gen4 AS (
     SELECT ST_Simplify(geometry, 200) AS geometry, osm_id, highway, construction, z_order
-    FROM :use_schema.osm_transportation_merge_linestring_gen3
+    FROM __use_schema__.osm_transportation_merge_linestring_gen3
     WHERE (highway IN ('motorway','trunk', 'primary') OR highway = 'construction' AND construction IN ('motorway','trunk', 'primary'))
         AND ST_Length(geometry) > 50
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen4_geometry_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen4 USING gist(geometry);
+  ON __use_schema__.osm_transportation_merge_linestring_gen4 USING gist(geometry);
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen4_highway_partial_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen4(highway, construction)
+  ON __use_schema__.osm_transportation_merge_linestring_gen4(highway, construction)
   WHERE highway IN ('motorway','trunk', 'primary', 'construction');
 
 -- etldoc: osm_transportation_merge_linestring_gen4 -> osm_transportation_merge_linestring_gen5
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring_gen5 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_merge_linestring_gen5 AS (
     SELECT ST_Simplify(geometry, 500) AS geometry, osm_id, highway, construction, z_order
-    FROM :use_schema.osm_transportation_merge_linestring_gen4
+    FROM __use_schema__.osm_transportation_merge_linestring_gen4
     WHERE (highway IN ('motorway','trunk') OR highway = 'construction' AND construction IN ('motorway','trunk'))
         AND ST_Length(geometry) > 100
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen5_geometry_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen5 USING gist(geometry);
+  ON __use_schema__.osm_transportation_merge_linestring_gen5 USING gist(geometry);
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen5_highway_partial_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen5(highway, construction)
+  ON __use_schema__.osm_transportation_merge_linestring_gen5(highway, construction)
   WHERE highway IN ('motorway','trunk', 'construction');
 
 -- etldoc: osm_transportation_merge_linestring_gen5 -> osm_transportation_merge_linestring_gen6
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring_gen6 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_merge_linestring_gen6 AS (
     SELECT ST_Simplify(geometry, 1000) AS geometry, osm_id, highway, construction, z_order
-    FROM :use_schema.osm_transportation_merge_linestring_gen5
+    FROM __use_schema__.osm_transportation_merge_linestring_gen5
     WHERE (highway IN ('motorway','trunk') OR highway = 'construction' AND construction IN ('motorway','trunk')) AND ST_Length(geometry) > 500
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen6_geometry_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen6 USING gist(geometry);
+  ON __use_schema__.osm_transportation_merge_linestring_gen6 USING gist(geometry);
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen6_highway_partial_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen6(highway, construction)
+  ON __use_schema__.osm_transportation_merge_linestring_gen6(highway, construction)
   WHERE highway IN ('motorway','trunk', 'construction');
 
 -- etldoc: osm_transportation_merge_linestring_gen6 -> osm_transportation_merge_linestring_gen7
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_merge_linestring_gen7 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_merge_linestring_gen7 AS (
     SELECT ST_Simplify(geometry, 2000) AS geometry, osm_id, highway, construction, z_order
-    FROM :use_schema.osm_transportation_merge_linestring_gen6
+    FROM __use_schema__.osm_transportation_merge_linestring_gen6
     WHERE (highway = 'motorway' OR highway = 'construction' AND construction = 'motorway') AND ST_Length(geometry) > 1000
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
 CREATE INDEX IF NOT EXISTS osm_transportation_merge_linestring_gen7_geometry_idx
-  ON :use_schema.osm_transportation_merge_linestring_gen7 USING gist(geometry);
+  ON __use_schema__.osm_transportation_merge_linestring_gen7 USING gist(geometry);
 
 
 -- Layer transportation - ./layer.sql
@@ -112,7 +112,7 @@ DO $$ BEGIN RAISE NOTICE 'Processing layer transportation_name'; END$$;
 DO $$
     BEGIN
         BEGIN
-            ALTER TABLE :use_schema.osm_route_member ADD COLUMN network_type route_network_type;
+            ALTER TABLE __use_schema__.osm_route_member ADD COLUMN network_type route_network_type;
         EXCEPTION
             WHEN duplicate_column THEN RAISE NOTICE 'column network_type already exists in network_type.';
         END;
@@ -124,16 +124,16 @@ $$
 
 
 -- create GBR relations (so we can use it in the same way as other relations)
-CREATE OR REPLACE FUNCTION :use_schema.update_gbr_route_members() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION __use_schema__.update_gbr_route_members() RETURNS VOID AS $$
 DECLARE gbr_geom geometry;
 BEGIN
     SELECT st_buffer(geometry, 10000) INTO gbr_geom FROM mapdata_prod.ne_10m_admin_0_countries where iso_a2 = 'GB';
-    DELETE FROM :use_schema.osm_route_member WHERE network IN ('omt-gb-motorway', 'omt-gb-trunk');
+    DELETE FROM __use_schema__.osm_route_member WHERE network IN ('omt-gb-motorway', 'omt-gb-trunk');
 
-    INSERT INTO :use_schema.osm_route_member (osm_id, member, ref, network)
+    INSERT INTO __use_schema__.osm_route_member (osm_id, member, ref, network)
     SELECT 0, osm_id, substring(ref FROM E'^[AM][0-9AM()]+'),
         CASE WHEN highway = 'motorway' THEN 'omt-gb-motorway' ELSE 'omt-gb-trunk' END
-    FROM :use_schema.osm_highway_linestring
+    FROM __use_schema__.osm_highway_linestring
     WHERE
         length(ref)>0 AND
         ST_Intersects(geometry, gbr_geom) AND
@@ -144,12 +144,12 @@ $$ LANGUAGE plpgsql;
 
 
 -- etldoc:  osm_route_member ->  osm_route_member
-CREATE OR REPLACE FUNCTION :use_schema.update_osm_route_member() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION __use_schema__.update_osm_route_member() RETURNS VOID AS $$
 BEGIN
-  PERFORM :use_schema.update_gbr_route_members();
+  PERFORM __use_schema__.update_gbr_route_members();
 
   -- see http://wiki.openstreetmap.org/wiki/Relation:route#Road_routes
-  UPDATE :use_schema.osm_route_member
+  UPDATE __use_schema__.osm_route_member
   SET network_type =
       CASE
         WHEN network = 'US:I' THEN 'us-interstate'::route_network_type
@@ -180,14 +180,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE INDEX IF NOT EXISTS osm_route_member_network_idx ON :use_schema.osm_route_member("network");
-CREATE INDEX IF NOT EXISTS osm_route_member_member_idx ON :use_schema.osm_route_member("member");
-CREATE INDEX IF NOT EXISTS osm_route_member_name_idx ON :use_schema.osm_route_member("name");
-CREATE INDEX IF NOT EXISTS osm_route_member_ref_idx ON :use_schema.osm_route_member("ref");
+CREATE INDEX IF NOT EXISTS osm_route_member_network_idx ON __use_schema__.osm_route_member("network");
+CREATE INDEX IF NOT EXISTS osm_route_member_member_idx ON __use_schema__.osm_route_member("member");
+CREATE INDEX IF NOT EXISTS osm_route_member_name_idx ON __use_schema__.osm_route_member("name");
+CREATE INDEX IF NOT EXISTS osm_route_member_ref_idx ON __use_schema__.osm_route_member("ref");
 
-SELECT :use_schema.update_osm_route_member();
+SELECT __use_schema__.update_osm_route_member();
 
-CREATE INDEX IF NOT EXISTS osm_route_member_network_type_idx ON :use_schema.osm_route_member("network_type");
+CREATE INDEX IF NOT EXISTS osm_route_member_network_type_idx ON __use_schema__.osm_route_member("network_type");
 
 -- Layer transportation_name - ./update_transportation_name.sql
 
@@ -199,7 +199,7 @@ CREATE INDEX IF NOT EXISTS osm_route_member_network_type_idx ON :use_schema.osm_
 
 -- etldoc: osm_highway_linestring ->  osm_transportation_name_network
 -- etldoc: osm_route_member ->  osm_transportation_name_network
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_network AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_name_network AS (
   SELECT
       hl.geometry,
       hl.osm_id,
@@ -221,14 +221,14 @@ CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_network AS (
       ROW_NUMBER() OVER(PARTITION BY hl.osm_id
                                    ORDER BY rm.network_type) AS "rank",
       hl.z_order
-  FROM :use_schema.osm_highway_linestring hl
-  left join :use_schema.osm_route_member rm on (rm.member = hl.osm_id)
+  FROM __use_schema__.osm_highway_linestring hl
+  left join __use_schema__.osm_route_member rm on (rm.member = hl.osm_id)
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
-CREATE INDEX IF NOT EXISTS osm_transportation_name_network_geometry_idx ON :use_schema.osm_transportation_name_network USING gist(geometry);
+CREATE INDEX IF NOT EXISTS osm_transportation_name_network_geometry_idx ON __use_schema__.osm_transportation_name_network USING gist(geometry);
 
 
 -- etldoc: osm_transportation_name_network ->  osm_transportation_name_linestring
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_linestring AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_name_linestring AS (
     SELECT
         (ST_Dump(geometry)).geom AS geometry,
         NULL::bigint AS osm_id,
@@ -260,62 +260,62 @@ CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_linestring AS (
           indoor,
           network_type,
           min(z_order) AS z_order
-      FROM :use_schema.osm_transportation_name_network
+      FROM __use_schema__.osm_transportation_name_network
       WHERE ("rank"=1 OR "rank" is null)
         AND (name <> '' OR ref <> '')
         AND NULLIF(highway, '') IS NOT NULL
       group by name, name_en, name_de, ref, highway, construction, "level", layer, indoor, network_type
     ) AS highway_union
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
-CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_geometry_idx ON :use_schema.osm_transportation_name_linestring USING gist(geometry);
+CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_geometry_idx ON __use_schema__.osm_transportation_name_linestring USING gist(geometry);
 
 CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_highway_partial_idx
-  ON :use_schema.osm_transportation_name_linestring(highway, construction)
+  ON __use_schema__.osm_transportation_name_linestring(highway, construction)
   WHERE highway IN ('motorway','trunk', 'construction');
 
 -- etldoc: osm_transportation_name_linestring -> osm_transportation_name_linestring_gen1
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_linestring_gen1 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_name_linestring_gen1 AS (
     SELECT ST_Simplify(geometry, 50) AS geometry, osm_id, name, name_en, name_de, tags, ref, highway, construction, network, z_order
-    FROM :use_schema.osm_transportation_name_linestring
+    FROM __use_schema__.osm_transportation_name_linestring
     WHERE (highway IN ('motorway','trunk') OR highway = 'construction' AND construction IN ('motorway','trunk'))  AND ST_Length(geometry) > 8000
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
-CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen1_geometry_idx ON :use_schema.osm_transportation_name_linestring_gen1 USING gist(geometry);
+CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen1_geometry_idx ON __use_schema__.osm_transportation_name_linestring_gen1 USING gist(geometry);
 
 CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen1_highway_partial_idx
-  ON :use_schema.osm_transportation_name_linestring_gen1(highway, construction)
+  ON __use_schema__.osm_transportation_name_linestring_gen1(highway, construction)
   WHERE highway IN ('motorway','trunk', 'construction');
 
 -- etldoc: osm_transportation_name_linestring_gen1 -> osm_transportation_name_linestring_gen2
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_linestring_gen2 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_name_linestring_gen2 AS (
     SELECT ST_Simplify(geometry, 120) AS geometry, osm_id, name, name_en, name_de, tags, ref, highway, construction, network, z_order
-    FROM :use_schema.osm_transportation_name_linestring_gen1
+    FROM __use_schema__.osm_transportation_name_linestring_gen1
     WHERE (highway IN ('motorway','trunk') OR highway = 'construction' AND construction IN ('motorway','trunk'))  AND ST_Length(geometry) > 14000
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
-CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen2_geometry_idx ON :use_schema.osm_transportation_name_linestring_gen2 USING gist(geometry);
+CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen2_geometry_idx ON __use_schema__.osm_transportation_name_linestring_gen2 USING gist(geometry);
 
 CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen2_highway_partial_idx
-  ON :use_schema.osm_transportation_name_linestring_gen2(highway, construction)
+  ON __use_schema__.osm_transportation_name_linestring_gen2(highway, construction)
   WHERE highway IN ('motorway','trunk', 'construction');
 
 -- etldoc: osm_transportation_name_linestring_gen2 -> osm_transportation_name_linestring_gen3
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_linestring_gen3 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_name_linestring_gen3 AS (
     SELECT ST_Simplify(geometry, 200) AS geometry, osm_id, name, name_en, name_de, tags, ref, highway, construction, network, z_order
-    FROM :use_schema.osm_transportation_name_linestring_gen2
+    FROM __use_schema__.osm_transportation_name_linestring_gen2
     WHERE (highway = 'motorway' OR highway = 'construction' AND construction = 'motorway') AND ST_Length(geometry) > 20000
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
-CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen3_geometry_idx ON :use_schema.osm_transportation_name_linestring_gen3 USING gist(geometry);
+CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen3_geometry_idx ON __use_schema__.osm_transportation_name_linestring_gen3 USING gist(geometry);
 
 CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen3_highway_partial_idx
-  ON :use_schema.osm_transportation_name_linestring_gen3(highway, construction)
+  ON __use_schema__.osm_transportation_name_linestring_gen3(highway, construction)
   WHERE highway IN ('motorway', 'construction');
 
 -- etldoc: osm_transportation_name_linestring_gen3 -> osm_transportation_name_linestring_gen4
-CREATE MATERIALIZED VIEW :use_schema.osm_transportation_name_linestring_gen4 AS (
+CREATE MATERIALIZED VIEW __use_schema__.osm_transportation_name_linestring_gen4 AS (
     SELECT ST_Simplify(geometry, 500) AS geometry, osm_id, name, name_en, name_de, tags, ref, highway, construction, network, z_order
-    FROM :use_schema.osm_transportation_name_linestring_gen3
+    FROM __use_schema__.osm_transportation_name_linestring_gen3
     WHERE (highway = 'motorway' OR highway = 'construction' AND construction = 'motorway') AND ST_Length(geometry) > 20000
 ) /* DELAY_MATERIALIZED_VIEW_CREATION */;
-CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen4_geometry_idx ON :use_schema.osm_transportation_name_linestring_gen4 USING gist(geometry);
+CREATE INDEX IF NOT EXISTS osm_transportation_name_linestring_gen4_geometry_idx ON __use_schema__.osm_transportation_name_linestring_gen4 USING gist(geometry);
 
 -- Layer transportation_name - ./layer.sql
 DO $$ BEGIN RAISE NOTICE 'Finished layer transportation_name'; END$$;

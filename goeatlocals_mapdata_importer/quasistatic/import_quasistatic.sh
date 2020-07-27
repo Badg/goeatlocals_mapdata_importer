@@ -45,17 +45,34 @@ PGPASSWORD=postgres ogr2ogr \
     PG:"host=goeatlocals_client_web-postgis user=postgres dbname=gis"  "/project_data/osm_extracts/lake_centerline.geojson" \
     || exit $?
 
+mkdir -p /tmp/sql_sed
+
 for f in /project_src/goeatlocals_mapdata_importer/quasistatic/sql/*.sql
 do
-    echo "$f"
+    FILENAME=$(basename "$f")
+    DEST_TMPFILE="/tmp/sql_sed/$FILENAME"
+    echo "Source $f"
+    echo "Temp $DEST_TMPFILE"
+    sed \
+        -e "s/__use_schema__/$PROD_SCHEMA/g" \
+        -e "s/__prod_schema__/$PROD_SCHEMA/g" \
+        -e "s/__staging_schema__/$STAGING_SCHEMA/g" \
+        -e "s/__backup_schema__/$BACKUP_SCHEMA/g" \
+        "$f" > "$DEST_TMPFILE" \
+        || exit $?
+
     PGPASSWORD=postgres psql \
         --host=goeatlocals_client_web-postgis \
         --username=postgres \
         -d gis \
         -v ON_ERROR_STOP=1 \
-        -v use_schema=$PROD_SCHEMA \
         -v check_function_bodies=off \
-        -f "$f" \
+        -c "SET check_function_bodies = off;" \
+        -f "$DEST_TMPFILE" \
+        -c "SET check_function_bodies = on;" \
         2>&1 \
         || exit $?
 done
+
+rm -r /tmp/sql_sed
+echo "Success!"

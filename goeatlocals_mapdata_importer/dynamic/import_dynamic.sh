@@ -7,6 +7,7 @@ BACKUP_SCHEMA=mapdata_backup
 
 imposm import \
     -config /project_src/omt_imposm3_config.json \
+    -overwritecache \
     -read /project_data/osm_extracts/norcal-latest.osm.pbf \
     -write \
     || exit $?
@@ -46,29 +47,53 @@ PGPASSWORD=postgres psql \
 
 echo "Borders done! Proceeding with dynamic-dependent SQL..."
 
+mkdir -p /tmp/sql_sed
+
 # TODO: could *actually* parallelize this, but right now there's not really any
 # point
 for f in /project_src/goeatlocals_mapdata_importer/dynamic/sql/*.sql
 do
-    echo "$f"
+    FILENAME=$(basename "$f")
+    DEST_TMPFILE="/tmp/sql_sed/$FILENAME"
+    echo "Source $f"
+    echo "Temp $DEST_TMPFILE"
+    sed \
+        -e "s/__use_schema__/$STAGING_SCHEMA/g" \
+        -e "s/__prod_schema__/$PROD_SCHEMA/g" \
+        -e "s/__staging_schema__/$STAGING_SCHEMA/g" \
+        -e "s/__backup_schema__/$BACKUP_SCHEMA/g" \
+        "$f" > "$DEST_TMPFILE" \
+        || exit $?
+
     PGPASSWORD=postgres psql \
         --host=goeatlocals_client_web-postgis \
         --username=postgres \
         -d gis \
         -v ON_ERROR_STOP=1 \
-        -f "$f" \
+        -f "$DEST_TMPFILE" \
         2>&1 \
         || exit $?
 done
 
 echo "Rotating schemas..."
+SRC_FILE="/project_src/goeatlocals_mapdata_importer/dynamic/rotate_schemas.sql"
+DEST_TMPFILE="/tmp/sql_sed/rotate_schemas.sql"
+sed \
+    -e "s/__use_schema__/$STAGING_SCHEMA/g" \
+    -e "s/__prod_schema__/$PROD_SCHEMA/g" \
+    -e "s/__staging_schema__/$STAGING_SCHEMA/g" \
+    -e "s/__backup_schema__/$BACKUP_SCHEMA/g" \
+    "$SRC_FILE" > "$DEST_TMPFILE" \
+    || exit $?
+
 PGPASSWORD=postgres psql \
     --host=goeatlocals_client_web-postgis \
     --username=postgres \
     -d gis \
     -v ON_ERROR_STOP=1 \
-    -f /project_src/goeatlocals_mapdata_importer/dynamic/rotate_schemas.sql \
+    -f "$DEST_TMPFILE" \
     2>&1 \
     || exit $?
 
+rm -r /tmp/sql_sed
 echo "Success!"
