@@ -39,23 +39,36 @@ CREATE MATERIALIZED VIEW __use_schema__.osm_poi_stop_rank AS (
 
 
 BEGIN;
+    ALTER TABLE __use_schema__.osm_poi_polygon
+        ADD COLUMN IF NOT EXISTS normalized_relevance bool DEFAULT FALSE;
+    CREATE INDEX ON __use_schema__.osm_poi_polygon (normalized_relevance);
+
     UPDATE __use_schema__.osm_poi_polygon
     SET geometry = normalize_poi_polygon_geo(geometry);
 
-    UPDATE __use_schema__.osm_poi_point
+    UPDATE __use_schema__.osm_poi_polygon
     SET subclass = normalize_osm_poi_subclass(station, subclass, funicular);
 
     UPDATE __use_schema__.osm_poi_polygon
     SET tags = update_tags(tags, geometry)
     WHERE COALESCE(tags->'name:latin', tags->'name:nonlatin', tags->'name_int') IS NULL;
 
+    --  Do this last so we still get the update tags (TODO: investigate what
+    --  it would look like before that)
+    UPDATE __use_schema__.osm_poi_polygon
+    SET normalized_relevance = TRUE
+    WHERE normalize_poi_relevance(name, mapping_key, subclass) = TRUE;
+
+    --  Back to business
     ANALYZE __use_schema__.osm_poi_polygon;
 END;
 
 
 BEGIN;
     ALTER TABLE __use_schema__.osm_poi_point
-    ADD COLUMN IF NOT EXISTS agg_stop INTEGER DEFAULT NULL;
+        ADD COLUMN IF NOT EXISTS agg_stop INTEGER DEFAULT NULL,
+        ADD COLUMN IF NOT EXISTS normalized_relevance bool DEFAULT FALSE;
+    CREATE INDEX ON __use_schema__.osm_poi_point (normalized_relevance);
 
     UPDATE __use_schema__.osm_poi_point
     SET subclass = normalize_osm_poi_subclass(station, subclass, funicular);
@@ -69,6 +82,11 @@ BEGIN;
     FROM __use_schema__.osm_poi_stop_rank r
     WHERE p.osm_id = r.osm_id;
 
+    --  Do this last so we still get the update tags (TODO: investigate what
+    --  it would look like before that)
+    UPDATE __use_schema__.osm_poi_point
+    SET normalized_relevance = TRUE
+    WHERE normalize_poi_relevance(name, mapping_key, subclass) = TRUE;
 END;
 
 DO $$ BEGIN RAISE NOTICE 'Finished layer poi'; END$$;

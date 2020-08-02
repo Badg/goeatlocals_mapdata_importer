@@ -158,7 +158,8 @@ RETURNS geometry AS $$
             THEN ST_Centroid(raw_geo)
         ELSE ST_PointOnSurface(raw_geo)
     END;
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL
+IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION mapdata_utils.normalize_osm_poi_subclass(station text, subclass text, funicular text)
@@ -168,7 +169,8 @@ RETURNS text AS $$
         WHEN funicular = 'yes' and subclass='station' THEN 'halt'
         ELSE subclass
     END;
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL
+IMMUTABLE PARALLEL SAFE;
 
 
 CREATE OR REPLACE FUNCTION mapdata_utils.normalize_osm_poi_point_agg(subclass varchar, rank bigint)
@@ -184,4 +186,24 @@ RETURNS bigint AS $$
 
         ELSE rank
     END;
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL
+IMMUTABLE PARALLEL SAFE;
+
+
+CREATE OR REPLACE FUNCTION mapdata_utils.normalize_poi_relevance(
+    name varchar, mapping_key varchar, subclass varchar)
+RETURNS bool AS $$
+    SELECT CASE
+        WHEN (
+            name IS NOT NULL AND
+            name <> '' AND
+            mapping_key IN ('amenity', 'shop') AND
+            subclass IN (
+                'fast_food', 'food_court', 'biergarten', 'restaurant',
+                'bar', 'pub', 'nightclub', 'cafe', 'greengrocer', 'wine',
+                'wholesale', 'supermarket', 'butcher', 'convenience',
+                'alcohol')
+        ) THEN TRUE
+    END;
+$$ LANGUAGE SQL
+IMMUTABLE PARALLEL SAFE;
