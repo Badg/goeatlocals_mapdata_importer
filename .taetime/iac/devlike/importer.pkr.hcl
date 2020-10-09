@@ -15,7 +15,6 @@ variable "image_name" {
 variable "aws_acct_id" {
     type = string
     description = "The AWS account ID for the control plane"
-    default = "221289148432"
 }
 
 variable "base_image_date" {
